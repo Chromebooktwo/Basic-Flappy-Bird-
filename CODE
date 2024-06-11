@@ -110,6 +110,14 @@
         if (!w[i].q && w[i].x < 40) {
           s += 1;
           w[i].q = 1;
+          // Update the score display dynamically
+          c.clearRect(0, 0, 320, 480);
+          c.t('Score: ' + s, 160, 32);
+          if (s > highScore) {
+            highScore = s;
+            localStorage.setItem('highScore', highScore);
+          }
+          c.t('High Score: ' + highScore, 160, 60); // Display high score during gameplay
         }
       }
     }, 10);
