@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flappy Bird Clone</title>
+<title>Downgraded Flappy Bird</title>
 <style>
   body, html {
     height: 100%;
@@ -11,7 +11,7 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: #87CEEB;
   }
   #e {
     border: solid 1px;
@@ -49,16 +49,28 @@
       f = 0,
       t = 0;
 
-  var highScore = localStorage.getItem('highScore') || 0;
+  var flappyTopScore = 0;
+
+  function drawFlappyScores(currentFlappyScore, flappyTopScore) {
+    c.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    c.fillRect(0, 0, 320, 40);
+    c.fillStyle = 'white';
+    c.font = 'bold 16px Arial';
+    c.textAlign = 'left';
+    c.fillText('Score: ' + currentFlappyScore, 10, 25);
+    c.textAlign = 'right';
+    c.fillText('High Score: ' + flappyTopScore, 310, 25);
+  }
 
   function r() {
     f = 1;
     k = 10;
     v = 0;
-    var s = 0,
+    var currentFlappyScore = 0,
         w = [],
         i = 0,
         l = 0,
+        birdX = 35, // Bird's x-position
         g = setInterval(function() {
       if (!w[0] || w[w.length - 1].x < 20) {
         w.push({
@@ -80,57 +92,55 @@
         w[i].x -= 0.2;
       }
       c.clearRect(0, 0, 320, 480);
-      c.t('Score: ' + s, 160, 32);
-      c.t('High Score: ' + highScore, 160, 60); // Display high score during gameplay
+      c.fillStyle = '#87CEEB';
+      c.fillRect(0, 0, 320, 480);
+      
       c.beginPath();
-      c.arc(140, (k + 5) * 4, 20, 0, 2 * m.PI);
+      c.fillStyle = 'yellow';
+      c.arc(birdX * 4, (k + 5) * 4, 20, 0, 2 * m.PI);
+      c.fill();
+      c.fillStyle = 'green';
       for (i in w) {
         l = w[i];
-        c.rect(l.x * 4, 0, 80, l.h * 4);
-        c.rect(l.x * 4, (l.h + 40) * 4, 80, 480);
+        c.fillRect(l.x * 4, 0, 80, l.h * 4);
+        c.fillRect(l.x * 4, (l.h + 40) * 4, 80, 480);
       }
-      c.stroke();
+      
+      drawFlappyScores(currentFlappyScore, flappyTopScore);
+      
       for (i in w) {
         l = w[i];
-        if (((40 > l.x && 10 < l.x) && (k < l.h || k > l.h + 30)) ||
-            d(l.x, l.h) < 5 ||
-            d(l.x + 20, l.h) < 5 ||
-            d(l.x, l.h + 40) < 5 ||
-            d(l.x + 20, l.h + 40) < 5 ||
+        // Check for collision
+        if (birdX > l.x && birdX < l.x + 20 && (k < l.h || k > l.h + 30) ||
             k > 110) {
           clearInterval(g);
-          if (s > highScore) {
-            highScore = s;
-            localStorage.setItem('highScore', highScore);
+          if (currentFlappyScore > flappyTopScore) {
+            flappyTopScore = currentFlappyScore;
           }
-          showGameOver(s, highScore);
+          showGameOver(currentFlappyScore, flappyTopScore);
           f = 0;
-          disableKeyboardInput(); // Disable keyboard input when game is over
+          disableKeyboardInput();
         }
-        if (!w[i].q && w[i].x < 40) {
-          s += 1;
-          w[i].q = 1;
-          // Update the score display dynamically
-          c.clearRect(0, 0, 320, 480);
-          c.t('Score: ' + s, 160, 32);
-          if (s > highScore) {
-            highScore = s;
-            localStorage.setItem('highScore', highScore);
+        // Score when bird passes the middle of the wall
+        if (!l.q && birdX > l.x + 10) {
+          currentFlappyScore += 1;
+          l.q = 1;
+          if (currentFlappyScore > flappyTopScore) {
+            flappyTopScore = currentFlappyScore;
           }
-          c.t('High Score: ' + highScore, 160, 60); // Display high score during gameplay
         }
       }
     }, 10);
   }
 
   function d(x, y) {
-    return m.sqrt((35 - x) * (35 - x) + m.pow(k + 5 - y, 2));
+    return m.sqrt((birdX - x) * (birdX - x) + m.pow(k + 5 - y, 2));
   }
 
-  function showGameOver(score, highScore) {
+  function showGameOver(finalScore, topScore) {
     var gameOverDiv = document.getElementById('game-over');
-    document.getElementById('score').innerText = score;
-    document.getElementById('high-score').innerText = highScore; // Display high score on game over screen
+    document.getElementById('score').innerText = finalScore;
+    document.getElementById('high-score').innerText = topScore;
     gameOverDiv.style.display = 'block';
   }
 
@@ -138,12 +148,17 @@
     var gameOverDiv = document.getElementById('game-over');
     gameOverDiv.style.display = 'none';
     c.clearRect(0, 0, 320, 480);
-    c.t('Hit space to start', 160, 240);
-    enableKeyboardInput(); // Enable keyboard input when game is reset
+    c.fillStyle = '#87CEEB';
+    c.fillRect(0, 0, 320, 480);
+    c.fillStyle = 'black';
+    c.font = 'bold 24px Arial';
+    c.textAlign = 'center';
+    c.fillText('Hit space to start', 160, 240);
+    enableKeyboardInput();
   }
 
   function disableKeyboardInput() {
-    window.onkeydown = null; // Remove event listener to disable keyboard input
+    window.onkeydown = null;
   }
 
   function enableKeyboardInput() {
@@ -152,16 +167,14 @@
     };
   }
 
-  enableKeyboardInput(); // Enable keyboard input initially
+  enableKeyboardInput();
 
   c.font = 'bold 24px Arial';
-  c.t = function(text, x, y) {
-    var metrics = c.measureText(text);
-    var textWidth = metrics.width;
-    c.fillText(text, x - textWidth / 2, y);
-  };
-
-  c.t('Hit space to start', 160, 240);
+  c.textAlign = 'center';
+  c.fillStyle = '#87CEEB';
+  c.fillRect(0, 0, 320, 480);
+  c.fillStyle = 'black';
+  c.fillText('Hit space to start', 160, 240);
 
 </script>
 </body>
